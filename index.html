@@ -1247,7 +1247,7 @@
               type="url"
               class="settings-input-full"
               id="setting-sheets-url"
-              placeholder="https://script.google.com/macros/s/…/exec"
+              placeholder="https://script.google.com/macros/s/AKfycbypr_XkAedEq5_Ln1cxyKDa1wHE0vKTEpl1gyWYEAsV7_iH0jzjon2XEKnFg-SR49Vs/exec"
               oninput="guardarAjustes()"
             />
           </div>
@@ -1487,7 +1487,14 @@ function doPost(e){
       function loadLocal() {
         try {
           const c = localStorage.getItem("bodega_cfg_v2");
-          if (c) config = Object.assign({ sheetsUrl: "https://script.google.com/macros/s/AKfycbypr_XkAedEq5_Ln1cxyKDa1wHE0vKTEpl1gyWYEAsV7_iH0jzjon2XEKnFg-SR49Vs/exec" }, JSON.parse(c));
+          if (c)
+            config = Object.assign(
+              {
+                sheetsUrl:
+                  "https://script.google.com/macros/s/AKfycbypr_XkAedEq5_Ln1cxyKDa1wHE0vKTEpl1gyWYEAsV7_iH0jzjon2XEKnFg-SR49Vs/exec",
+              },
+              JSON.parse(c),
+            );
           const u = localStorage.getItem("bodega_user_v1");
           if (u)
             sesion = Object.assign({ nombre: "", email: "" }, JSON.parse(u));
