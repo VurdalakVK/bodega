@@ -9,7 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#0f4c81" />
-    <link rel="shortcut icon" href="/images/caja.png" type="image/x-icon" />
+    <link rel="icon" type="image/png" href="images/caja.png" />
+    <link rel="apple-touch-icon" href="images/caja.png" />
     <title>Control de Bodega</title>
     <style>
       * {
@@ -997,27 +998,19 @@
             </div>
             <!-- encargado set at login, shown here as badge -->
             <div class="field">
-              <label>Area</label>
+              <label>Sección</label>
               <select
                 id="mov-notas"
                 onchange="aplicarColorSeccion()"
                 style="font-weight: 700; color: #3b82f6"
               >
-                <option value="Operaciones" data-color="#06b6d4">
-                  Operaciones
-                </option>
+                <option value="Operaciones" data-color="#06b6d4">Operaciones</option>
                 <option value="Recaudo" data-color="#ec4899">Recaudo</option>
-                <option value="Baños Norte" data-color="#3b82f6" selected>
-                  Baños Norte
-                </option>
-                <option value="Baños Sur" data-color="#1e3a8a">
-                  Baños Sur
-                </option>
+                <option value="Baños Norte" data-color="#3b82f6" selected>Baños Norte</option>
+                <option value="Baños Sur" data-color="#1e3a8a">Baños Sur</option>
                 <option value="GNV" data-color="#22c55e">GNV</option>
                 <option value="Sistemas" data-color="#a855f7">Sistemas</option>
-                <option value="Mantenimiento" data-color="#f97316">
-                  Mantenimiento
-                </option>
+                <option value="Mantenimiento" data-color="#f97316">Mantenimiento</option>
                 <option value="Omega" data-color="#6b7280">Omega</option>
               </select>
             </div>
@@ -1247,12 +1240,7 @@
           <div class="card-title">👤 Usuario</div>
           <div class="field">
             <label>Correo electrónico</label>
-            <input
-              type="email"
-              id="edit-u-email"
-              placeholder="tu@correo.com"
-              autocomplete="email"
-            />
+            <input type="email" id="edit-u-email" placeholder="tu@correo.com" autocomplete="email" />
           </div>
           <button class="btn btn-primary" onclick="guardarUsuario()">
             💾 Guardar
@@ -1521,7 +1509,8 @@ function doPost(e){
               JSON.parse(c),
             );
           const u = localStorage.getItem("bodega_user_v1");
-          if (u) sesion = Object.assign({ email: "" }, JSON.parse(u));
+          if (u)
+            sesion = Object.assign({ email: "" }, JSON.parse(u));
           const p = localStorage.getItem("bodega_prods_c");
           if (p) productos = JSON.parse(p);
           const m = localStorage.getItem("bodega_movs_c");
@@ -1546,7 +1535,10 @@ function doPost(e){
         loadLocal();
         if (!sesion.email) {
           document.getElementById("login-overlay").style.display = "flex";
-          setTimeout(() => document.getElementById("login-email").focus(), 100);
+          setTimeout(
+            () => document.getElementById("login-email").focus(),
+            100,
+          );
         } else {
           mostrarApp();
         }
@@ -2210,8 +2202,7 @@ function doPost(e){
         }
         if (tab === "productos") renderProductos();
         if (tab === "movimiento") llenarSelectProductos();
-        if (tab === "ajustes")
-          document.getElementById("edit-u-email").value = sesion.email || "";
+        if (tab === "ajustes") document.getElementById("edit-u-email").value = sesion.email || "";
       }
 
       // ARRANCAR (esperar a que el DOM esté listo para poder referenciar #login-email, #login-overlay, etc.)
@@ -2325,5 +2316,6 @@ function doPost(e){
         </button>
       </div>
     </div>
+
   </body>
 </html>
