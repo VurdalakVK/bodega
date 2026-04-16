@@ -761,7 +761,7 @@
       <!-- user pill -->
       <div
         id="user-pill"
-        onclick="mostrarModalUsuario()"
+        onclick="showTab('ajustes')"
         style="
           position: absolute;
           top: 14px;
@@ -941,7 +941,7 @@
                 ></div>
               </div>
               <span
-                onclick="mostrarModalUsuario()"
+                onclick="showTab('ajustes')"
                 style="
                   font-size: 12px;
                   color: #1a56db;
@@ -1236,6 +1236,90 @@
       <!-- ══════════════════ AJUSTES ══════════════════ -->
       <div id="tab-ajustes" style="display: none">
         <div class="card">
+          <div class="card-title">👤 Mi Perfil</div>
+          <p style="font-size: 13px; color: #718096; margin-bottom: 14px">
+            Tu nombre y correo se usan para identificar tus movimientos en el
+            historial y en Google Sheets.
+          </p>
+          <div style="margin-bottom: 14px">
+            <label
+              style="
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #718096;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                margin-bottom: 6px;
+              "
+              >Tu nombre</label
+            >
+            <input
+              type="text"
+              id="ajuste-nombre"
+              placeholder="Ej. Ana García"
+              style="
+                width: 100%;
+                padding: 11px 14px;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 9px;
+                font-size: 15px;
+                color: #1a202c;
+                background: #f7fafc;
+                font-family: inherit;
+              "
+              oninput="this.style.borderColor = '#1a56db'"
+            />
+          </div>
+          <div style="margin-bottom: 16px">
+            <label
+              style="
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: #718096;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                margin-bottom: 6px;
+              "
+              >Correo electrónico</label
+            >
+            <input
+              type="email"
+              id="ajuste-email"
+              placeholder="tu@correo.com"
+              inputmode="email"
+              style="
+                width: 100%;
+                padding: 11px 14px;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 9px;
+                font-size: 15px;
+                color: #1a202c;
+                background: #f7fafc;
+                font-family: inherit;
+              "
+              oninput="this.style.borderColor = '#1a56db'"
+            />
+          </div>
+          <button class="btn btn-primary" onclick="guardarPerfilAjustes()">
+            💾 Guardar perfil
+          </button>
+          <div
+            id="perfil-saved-msg"
+            style="
+              display: none;
+              margin-top: 10px;
+              text-align: center;
+              font-size: 13px;
+              font-weight: 600;
+              color: #38a169;
+            "
+          >
+            ✔ Perfil guardado
+          </div>
+        </div>
+        <div class="card">
           <div class="card-title">📊 Google Sheets</div>
           <p style="font-size: 13px; color: #718096; margin-bottom: 10px">
             Cada movimiento registrado se enviará automáticamente a tu hoja de
@@ -1490,8 +1574,7 @@ function doPost(e){
           if (c)
             config = Object.assign(
               {
-                sheetsUrl:
-                  "https://script.google.com/macros/s/AKfycbypr_XkAedEq5_Ln1cxyKDa1wHE0vKTEpl1gyWYEAsV7_iH0jzjon2XEKnFg-SR49Vs/exec",
+                sheetsUrl: "",
               },
               JSON.parse(c),
             );
@@ -1520,15 +1603,7 @@ function doPost(e){
       // ═══════════════════════════════
       function iniciarApp() {
         loadLocal();
-        if (!sesion.email) {
-          document.getElementById("login-overlay").style.display = "flex";
-          setTimeout(
-            () => document.getElementById("login-nombre").focus(),
-            100,
-          );
-        } else {
-          mostrarApp();
-        }
+        mostrarApp();
       }
       function hacerLogin() {
         const nombre = document.getElementById("login-nombre").value.trim();
@@ -1539,12 +1614,14 @@ function doPost(e){
         }
         sesion = { nombre, email };
         saveUser();
-        document.getElementById("login-overlay").style.display = "none";
         mostrarApp();
       }
       function mostrarApp() {
         document.getElementById("setting-sheets-url").value =
           config.sheetsUrl || "";
+        // Populate perfil fields
+        document.getElementById("ajuste-nombre").value = sesion.nombre || "";
+        document.getElementById("ajuste-email").value  = sesion.email  || "";
         document.getElementById("header-date").textContent =
           new Date().toLocaleDateString("es-MX", {
             weekday: "long",
@@ -1569,15 +1646,20 @@ function doPost(e){
       // ═══════════════════════════════
       function actualizarUIUsuario() {
         const ini = initial(sesion.nombre, sesion.email);
-        const label = sesion.nombre || sesion.email;
+        const label = sesion.nombre || sesion.email || "Sin configurar";
         document.getElementById("header-avatar").textContent = ini;
         document.getElementById("header-user-name").textContent = label;
         document.getElementById("form-avatar").textContent = ini;
         document.getElementById("form-nombre").textContent =
-          sesion.nombre || sesion.email;
+          sesion.nombre || sesion.email || "⚠ Configura tu perfil en Ajustes";
+        document.getElementById("form-nombre").style.color =
+          sesion.email ? "#2b6cb0" : "#e53e3e";
         document.getElementById("form-email-small").textContent = sesion.nombre
           ? sesion.email
           : "";
+        // Change "Cambiar" label depending on state
+        const cambiarEl = document.querySelector('[onclick="showTab('ajustes')"]');
+        if (cambiarEl) cambiarEl.textContent = sesion.email ? "Cambiar" : "Configurar";
       }
       function mostrarModalUsuario() {
         document.getElementById("edit-u-nombre").value = sesion.nombre || "";
@@ -2060,6 +2142,20 @@ function doPost(e){
       // ═══════════════════════════════
       //  AJUSTES
       // ═══════════════════════════════
+      function guardarPerfilAjustes() {
+        const nombre = document.getElementById("ajuste-nombre").value.trim();
+        const email  = document.getElementById("ajuste-email").value.trim();
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
+          alert("Ingresa un correo válido.");
+          return;
+        }
+        sesion = { nombre, email };
+        saveUser();
+        actualizarUIUsuario();
+        const msg = document.getElementById("perfil-saved-msg");
+        msg.style.display = "block";
+        setTimeout(() => msg.style.display = "none", 2500);
+      }
       function guardarAjustes() {
         config.sheetsUrl = document
           .getElementById("setting-sheets-url")
@@ -2189,6 +2285,10 @@ function doPost(e){
         }
         if (tab === "productos") renderProductos();
         if (tab === "movimiento") llenarSelectProductos();
+        if (tab === "ajustes") {
+          document.getElementById("ajuste-nombre").value = sesion.nombre || "";
+          document.getElementById("ajuste-email").value  = sesion.email  || "";
+        }
       }
 
       // Enter en login
@@ -2207,136 +2307,6 @@ function doPost(e){
       iniciarApp();
     </script>
     <!-- ═══════ LOGIN ═══════ -->
-    <div
-      id="login-overlay"
-      style="
-        position: fixed;
-        inset: 0;
-        z-index: 999;
-        background: linear-gradient(
-          160deg,
-          #0f4c81 0%,
-          #1a56db 60%,
-          #2563eb 100%
-        );
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-      "
-    >
-      <div
-        style="
-          background: white;
-          border-radius: 20px;
-          padding: 32px 28px;
-          width: 100%;
-          max-width: 380px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        "
-      >
-        <div style="text-align: center; margin-bottom: 24px">
-          <span style="font-size: 52px; display: block; margin-bottom: 10px"
-            >📦</span
-          >
-          <h2 style="font-size: 20px; font-weight: 800; color: #1a202c">
-            Control de Bodega
-          </h2>
-          <p style="font-size: 13px; color: #718096; margin-top: 4px">
-            Identifícate para continuar
-          </p>
-        </div>
-        <div style="margin-bottom: 16px">
-          <label
-            style="
-              display: block;
-              font-size: 12px;
-              font-weight: 700;
-              color: #718096;
-              text-transform: uppercase;
-              letter-spacing: 0.4px;
-              margin-bottom: 6px;
-            "
-            >Tu nombre</label
-          >
-          <input
-            type="text"
-            id="login-nombre"
-            placeholder="Ej. Ana García"
-            autocomplete="name"
-            style="
-              width: 100%;
-              padding: 13px 14px;
-              border: 1.5px solid #e2e8f0;
-              border-radius: 10px;
-              font-size: 15px;
-              color: #1a202c;
-              background: #f7fafc;
-              font-family: inherit;
-            "
-          />
-        </div>
-        <div style="margin-bottom: 16px">
-          <label
-            style="
-              display: block;
-              font-size: 12px;
-              font-weight: 700;
-              color: #718096;
-              text-transform: uppercase;
-              letter-spacing: 0.4px;
-              margin-bottom: 6px;
-            "
-            >Correo electrónico</label
-          >
-          <input
-            type="email"
-            id="login-email"
-            placeholder="tu@correo.com"
-            inputmode="email"
-            autocomplete="email"
-            style="
-              width: 100%;
-              padding: 13px 14px;
-              border: 1.5px solid #e2e8f0;
-              border-radius: 10px;
-              font-size: 15px;
-              color: #1a202c;
-              background: #f7fafc;
-              font-family: inherit;
-            "
-          />
-          <div
-            id="login-err"
-            style="
-              font-size: 12px;
-              color: #e53e3e;
-              margin-top: 6px;
-              display: none;
-            "
-          >
-            Ingresa un correo válido.
-          </div>
-        </div>
-        <button
-          onclick="hacerLogin()"
-          style="
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            background: linear-gradient(135deg, #1a56db, #0f4c81);
-            color: white;
-            font-family: inherit;
-          "
-        >
-          Entrar →
-        </button>
-      </div>
-    </div>
 
     <!-- MODAL USUARIO -->
     <div
