@@ -958,7 +958,7 @@
             <div class="card-title">📦 Tipo de Movimiento</div>
             <div class="tipo-toggle">
               <button
-                class="tipo-btn selected-entrada"
+                class="tipo-btn"
                 id="btn-entrada"
                 onclick="seleccionarTipo('entrada')"
               >
@@ -967,7 +967,7 @@
                 >
               </button>
               <button
-                class="tipo-btn"
+                class="tipo-btn selected-salida"
                 id="btn-salida"
                 onclick="seleccionarTipo('salida')"
               >
@@ -1452,7 +1452,7 @@ function doPost(e){
             "https://script.google.com/macros/s/AKfycbypr_XkAedEq5_Ln1cxyKDa1wHE0vKTEpl1gyWYEAsV7_iH0jzjon2XEKnFg-SR49Vs/exec",
         },
         sesion = { email: "" };
-      let tipoActual = "entrada",
+      let tipoActual = "salida",
         invFiltro = "alerta",
         histFiltro = "todos";
       let syncTimer = null,
