@@ -1322,13 +1322,6 @@ function doPost(e){
           <button class="btn-danger" onclick="borrarHistorial()">
             Borrar historial de movimientos
           </button>
-          <button
-            class="btn-danger"
-            style="margin-top: 8px"
-            onclick="borrarTodo()"
-          >
-            ⚠️ Borrar todo (productos + historial)
-          </button>
         </div>
 
         <div class="card">
@@ -2162,15 +2155,6 @@ function doPost(e){
           alert(
             "Nota: El historial en Sheets no se borró. Hazlo manualmente en la hoja Movimientos.",
           );
-      }
-      function borrarTodo() {
-        if (!confirm("¿Borrar TODO?")) return;
-        productos = [];
-        movimientos = [];
-        cacheData();
-        renderProductos();
-        renderHistorial();
-        llenarSelectProductos();
       }
 
       // ═══════════════════════════════
