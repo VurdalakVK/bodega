@@ -494,6 +494,17 @@
         padding: 14px 10px;
         text-align: center;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+        border: 2px solid transparent;
+        transition:
+          border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+      .stat-box:hover {
+        transform: translateY(-1px);
+      }
+      .stat-box.stat-active {
+        border-color: #1a56db;
+        box-shadow: 0 4px 10px rgba(26, 86, 219, 0.15);
       }
       .stat-num {
         font-size: 22px;
@@ -1149,20 +1160,6 @@
         <div class="stats-row" id="stats-row"></div>
         <div class="filter-row" id="inv-filters">
           <div
-            class="filter-chip active"
-            data-filter="alerta"
-            onclick="filtrarInv('alerta', this)"
-          >
-            🔴 En alerta
-          </div>
-          <div
-            class="filter-chip"
-            data-filter="todos"
-            onclick="filtrarInv('todos', this)"
-          >
-            Todos
-          </div>
-          <div
             class="filter-chip"
             data-filter="papel"
             onclick="filtrarInv('papel', this)"
@@ -1456,6 +1453,7 @@ function doPost(e){
       }
       function fmtDate(v) {
         const d = v instanceof Date ? v : new Date(v);
+        if (isNaN(d.getTime())) return String(v || "");
         return (
           d.toLocaleDateString("es-MX", {
             weekday: "short",
@@ -1784,7 +1782,6 @@ function doPost(e){
           const ok = await postSheets({
             action: "movimiento",
             ...mov,
-            fecha: fmtDate(mov.fecha),
           });
           if (ok) {
             setSyncStatus("synced", "✔ Guardado y sincronizado");
@@ -1862,10 +1859,16 @@ function doPost(e){
               p.stockActual <= p.stockMinimo * 1.5,
           ).length;
         document.getElementById("stats-row").innerHTML =
-          `<div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Productos</div></div><div class="stat-box"><div class="stat-num warn">${medios}</div><div class="stat-lbl">Stock medio</div></div><div class="stat-box"><div class="stat-num danger">${alertas}</div><div class="stat-lbl">En alerta</div></div>`;
+          `<div class="stat-box${invFiltro === "todos" ? " stat-active" : ""}" style="cursor:pointer" onclick="filtrarInv('todos')"><div class="stat-num">${total}</div><div class="stat-lbl">Productos</div></div><div class="stat-box${invFiltro === "medio" ? " stat-active" : ""}" style="cursor:pointer" onclick="filtrarInv('medio')"><div class="stat-num warn">${medios}</div><div class="stat-lbl">Stock medio</div></div><div class="stat-box${invFiltro === "alerta" ? " stat-active" : ""}" style="cursor:pointer" onclick="filtrarInv('alerta')"><div class="stat-num danger">${alertas}</div><div class="stat-lbl">En alerta</div></div>`;
         let lista = [...productos];
         if (invFiltro === "alerta")
           lista = lista.filter((p) => p.stockActual <= p.stockMinimo);
+        else if (invFiltro === "medio")
+          lista = lista.filter(
+            (p) =>
+              p.stockActual > p.stockMinimo &&
+              p.stockActual <= p.stockMinimo * 1.5,
+          );
         else if (invFiltro !== "todos")
           lista = lista.filter((p) => p.categoria === invFiltro);
         lista.sort(
@@ -1895,7 +1898,12 @@ function doPost(e){
         document
           .querySelectorAll("#inv-filters .filter-chip")
           .forEach((c) => c.classList.remove("active"));
-        el.classList.add("active");
+        const chip =
+          el ||
+          document.querySelector(
+            `#inv-filters .filter-chip[data-filter="${f}"]`,
+          );
+        if (chip) chip.classList.add("active");
         renderInventario();
       }
 
@@ -1914,11 +1922,14 @@ function doPost(e){
         }
         const g = {};
         lista.forEach((m) => {
-          const d = new Date(m.fecha).toLocaleDateString("es-MX", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          });
+          const dObj = new Date(m.fecha);
+          const d = isNaN(dObj.getTime())
+            ? String(m.fecha || "Sin fecha")
+            : dObj.toLocaleDateString("es-MX", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              });
           if (!g[d]) g[d] = [];
           g[d].push(m);
         });
@@ -1927,7 +1938,11 @@ function doPost(e){
           html += `<div class="section-title">${day}</div>`;
           items.forEach((m) => {
             const esE = m.tipo === "entrada";
-            html += `<div class="mov-item" onclick="verDetalleMov('${m.id}')"><div class="mov-badge ${m.tipo}">${esE ? "⬆️" : "⬇️"}</div><div class="mov-info"><div class="mov-title">${m.productoNombre}</div><div class="mov-meta">${new Date(m.fecha).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })} · ${m.encargadoNombre || m.encargado}</div></div><div class="mov-qty ${esE ? "qty-entrada" : "qty-salida"}">${esE ? "+" : "-"}${m.cantidad}</div></div>`;
+            const tObj = new Date(m.fecha);
+            const hora = isNaN(tObj.getTime())
+              ? ""
+              : tObj.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) + " · ";
+            html += `<div class="mov-item" onclick="verDetalleMov('${m.id}')"><div class="mov-badge ${m.tipo}">${esE ? "⬆️" : "⬇️"}</div><div class="mov-info"><div class="mov-title">${m.productoNombre}</div><div class="mov-meta">${hora}${m.encargadoNombre || m.encargado}</div></div><div class="mov-qty ${esE ? "qty-entrada" : "qty-salida"}">${esE ? "+" : "-"}${m.cantidad}</div></div>`;
           });
         }
         el.innerHTML = html;
